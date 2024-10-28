@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Rotate line</title>
+     <style>
+          body {
+               display: flex;
+               height: 100dvh;
+               align-items: center;
+               justify-content: center;
+               background-color: #000;
+          }
+
+          canvas {
+               background-color: #999;
+          }
+     </style>
+     <script type="module">
+          const canvas = document.querySelector('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = 500;
+          canvas.height = 500;
+
+          let x = 450;
+          let y = 250;
+
+          let angle = 0;
+          let radius = 200;
+          let speed_rotate = 10;
+
+          function update() {
+               ctx.clearRect(0, 0, 500, 500);
+               ctx.beginPath();
+               ctx.moveTo(250, 250);
+               ctx.lineTo(250 + x, 250 + y);
+               ctx.lineWidth = 4;
+               ctx.stroke();
+
+               if (angle >= 360) {
+                    angle = 0;
+               }
+
+               angle += speed_rotate;
+
+               let x_angle = Math.cos(angle * (Math.PI / 180));
+               let y_angle = Math.sin(angle * (Math.PI / 180));
+
+               x = radius * x_angle;
+               y = radius * y_angle;
+
+               window.requestAnimationFrame(update)
+          }
+
+          update();
+     </script>
+</head>
+
+<body>
+     <canvas></canvas>
+</body>
+
+</html>
