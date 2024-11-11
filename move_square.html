@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Moviendo un cuadrado</title>
+     <style>
+          * {
+               margin: 0;
+               padding: 0;
+               font-family: sans-serif;
+               font-size: 16px;
+          }
+
+          body {
+               height: 100dvh;
+               display: flex;
+               align-items: center;
+               justify-content: center;
+               flex-direction: column;
+               background-color: #222;
+               color: #fff;
+          }
+
+          canvas {
+               width: auto;
+               background-color: #777;
+          }
+     </style>
+     <script type="module">
+          const showAngle = document.querySelector('p');
+          const canvas = document.querySelector('canvas');
+          const ctx = canvas.getContext('2d');
+
+          canvas.width = 500;
+          canvas.height = 500;
+
+          let mouse_x = 0, mouse_y = 0;
+          let angle = 0;
+          const speed_move = 3;
+          let needsUpdate = true; // Bandera para indicar si se necesita actualizar el dibujo
+
+          // Centro del cuadrado, que ahora está correctamente en el centro del canvas
+          let square_center = { x: canvas.width / 2, y: canvas.height / 2 };
+
+          // Puntos iniciales del cuadrado
+          let points = [
+               { x: -25, y: -25 },
+               { x: 25, y: -25 },
+               { x: 25, y: 25 },
+               { x: -25, y: 25 }
+          ];
+
+          let rotatedPoints = [...points]; // Puntos rotados actuales
+          let cosAngle = 1, sinAngle = 0; // Valores de coseno y seno del ángulo
+
+          // Función para rotar un punto dado el centro y los valores precalculados de cos y sin
+          function rotate_point(point, cos, sin) {
+               return {
+                    x: point.x * cos - point.y * sin,
+                    y: point.x * sin + point.y * cos
+               };
+          }
+
+          // Calcula el ángulo y actualiza solo si cambia la posición del mouse
+          function updateAngle() {
+               const delta_x = mouse_x - square_center.x;
+               const delta_y = mouse_y - square_center.y;
+               const newAngle = Math.atan2(delta_y, delta_x);
+               if (newAngle !== angle) {
+                    angle = newAngle;
+                    showAngle.innerHTML = `Ángulo: ${(angle * (180 / Math.PI)).toFixed(0)}°`;
+                    cosAngle = Math.cos(angle);
+                    sinAngle = Math.sin(angle);
+                    updateRotatedPoints(); // Actualiza los puntos rotados solo si el ángulo cambia
+               }
+          }
+
+          // Actualiza los puntos rotados en base al nuevo ángulo
+          function updateRotatedPoints() {
+               rotatedPoints = points.map(point => {
+                    const rotated = rotate_point(point, cosAngle, sinAngle);
+                    return {
+                         x: rotated.x + square_center.x,
+                         y: rotated.y + square_center.y
+                    };
+               });
+               needsUpdate = true;
+          }
+
+          // Evento para mover el cuadrado con las teclas
+          document.addEventListener('keypress', (e) => {
+               if (e.key === 'w') {
+                    square_center.y -= speed_move;
+               } else if (e.key === 's') {
+                    square_center.y += speed_move;
+               } else if (e.key === 'a') {
+                    square_center.x -= speed_move;
+               } else if (e.key === 'd') {
+                    square_center.x += speed_move;
+               }
+               updateAngle(); // Recalcula el ángulo si el cuadrado se mueve
+          });
+
+          // Evento de movimiento del mouse
+          canvas.addEventListener("mousemove", (event) => {
+               const rect = canvas.getBoundingClientRect();
+               mouse_x = event.clientX - rect.left;
+               mouse_y = event.clientY - rect.top;
+               updateAngle(); // Solo actualiza si el mouse se mueve
+          });
+
+          // Dibuja el cuadrado en su posición rotada solo si hay cambios
+          function draw() {
+               if (needsUpdate) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                    ctx.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
+                    rotatedPoints.slice(1).forEach(point => ctx.lineTo(point.x, point.y));
+                    ctx.closePath();
+                    ctx.stroke();
+                    needsUpdate = false; // Evita dibujar nuevamente hasta que haya un cambio
+               }
+               window.requestAnimationFrame(draw);
+          }
+
+          draw();
+          updateRotatedPoints();
+     </script>
+</head>
+
+<body>
+     <canvas></canvas>
+     <p>Ángulo: 0°</p>
+     <p>Teclas wasd.</p>
+</body>
+
+</html>
